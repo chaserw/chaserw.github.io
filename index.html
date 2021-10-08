@@ -183,10 +183,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-09-30 17:49:27 / 修改时间：17:53:23" itemprop="dateCreated datePublished" datetime="2021-09-30T17:49:27+08:00">2021-09-30</time>
+              <time title="创建时间：2021-09-30 17:49:27" itemprop="dateCreated datePublished" datetime="2021-09-30T17:49:27+08:00">2021-09-30</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-10-08 09:35:52" itemprop="dateModified" datetime="2021-10-08T09:35:52+08:00">2021-10-08</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -216,7 +222,7 @@
 <li>WebLogic 12.2.1.4.0</li>
 <li>WebLogic 14.1.1.0.0</li>
 </ul>
-<h4 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>使用<a target="_blank" rel="noopener" href="https://github.com/vulhub/vulhub/tree/master/weblogic/CVE-2020-14882">vulhub</a>搭建漏洞环境，<code>docker-compose up -d</code>开启weblogic 12.2.1.3服务器</p>
+<h4 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>使用<a target="_blank" rel="noopener" href="https://github.com/vulhub/vulhub/tree/master/weblogic/CVE-2020-14882">vulhub CVE-2020-14882</a>搭建漏洞环境，<code>docker-compose up -d</code>开启weblogic 12.2.1.3服务器</p>
 <p>1、启动ldap监听</p>
 <p>使用JNDI注入工具开启ldap监听</p>
 <p>可以用：<a target="_blank" rel="noopener" href="https://github.com/welk1n/JNDI-Injection-Exploit">https://github.com/welk1n/JNDI-Injection-Exploit</a></p>
