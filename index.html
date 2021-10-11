@@ -160,7 +160,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://chaserw.github.io/2021/10/09/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/">
+    <link itemprop="mainEntityOfPage" href="http://chaserw.github.io/2021/10/11/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -174,7 +174,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/10/09/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/" class="post-title-link" itemprop="url">Apache HTTP Server路径穿越漏洞（CVE-2021-41773、CVE-2021-42013）</a>
+            <a href="/2021/10/11/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/" class="post-title-link" itemprop="url">Apache HTTP Server路径穿越漏洞（CVE-2021-41773、CVE-2021-42013）复现</a>
         </h2>
 
         <div class="post-meta">
@@ -185,7 +185,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-10-09 13:43:38 / 修改时间：13:50:16" itemprop="dateCreated datePublished" datetime="2021-10-09T13:43:38+08:00">2021-10-09</time>
+              <time title="创建时间：2021-10-11 09:08:36 / 修改时间：09:11:27" itemprop="dateCreated datePublished" datetime="2021-10-11T09:08:36+08:00">2021-10-11</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -216,7 +216,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># 取消#注释</span><br><span class="line">&lt;IfModule !mpm_prefork_module&gt;</span><br><span class="line">	LoadModule cgid_module modules&#x2F;mod_cgid.so</span><br><span class="line">&lt;&#x2F;IfModule&gt;</span><br><span class="line">&lt;IfModule mpm_prefork_module&gt;</span><br><span class="line">	LoadModule cgi_module modules&#x2F;mod_cgi.so</span><br><span class="line">&lt;&#x2F;IfModule&gt;</span><br><span class="line">...</span><br><span class="line"># 修改denied为granted</span><br><span class="line">&lt;Directory &#x2F;&gt;</span><br><span class="line">    AllowOverride none</span><br><span class="line">    Require all granted</span><br><span class="line">&lt;&#x2F;Directory&gt;</span><br><span class="line">...</span><br><span class="line"># 取消#注释</span><br><span class="line">Include conf&#x2F;extra&#x2F;httpd-autoindex.conf</span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2021/10/09/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/#more" rel="contents">
+              <a class="btn" href="/2021/10/11/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
